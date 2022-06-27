@@ -1,41 +1,45 @@
 ﻿using System;
 using System.Text;
 
-namespace ChatCoreTest
+namespace NetHomework2
 {
-    internal class ChatCoreTest
+    internal class HW2
     {
-        private static byte[] m_NoReversePacketData;
         private static byte[] m_PacketData;
         private static uint m_Pos;
 
-        private static int DataLeangh;
+        private static byte[] m_PacketDataPlusLeangh;
         private static int StringByteCount;
         private static string s = "Hello!";
 
         public static void Main(string[] args)
         {
-            m_NoReversePacketData = new byte[1024];
+            m_PacketDataPlusLeangh = new byte[1024];
             m_PacketData = new byte[1024];
             m_Pos = 0;
-            DataLeangh = 0;
 
             Write(109);
             Write(109.99f);
             Write(s);
             Count();
 
-            Console.Write($"Output Byte array(length:{m_Pos}): ");
-            Console.WriteLine();
+            m_PacketDataPlusLeangh[0] = (byte)m_Pos;
             for (var i = 0; i < m_Pos; i++)
             {
-                Console.Write(m_PacketData[i] + ", ");
+                m_PacketDataPlusLeangh[i + 1] = m_PacketData[i];
+            }
+
+            Console.Write($"Output Byte array(length:{m_Pos}): ");
+            Console.WriteLine();
+            for (var i = 0; i < m_Pos + 1; i++)
+            {
+                Console.Write(m_PacketDataPlusLeangh[i] + ", ");
             }
             Console.WriteLine("\n");
 
-            Console.WriteLine($"Output String array(length:{DataLeangh}):");
-            UnPacking(m_NoReversePacketData);
-            Console.ReadKey(); //中斷點
+            Console.WriteLine($"Output String array:");
+            UnPacking(m_PacketDataPlusLeangh);
+            Console.ReadKey();
         }
 
         // write an integer into a byte array
@@ -44,7 +48,6 @@ namespace ChatCoreTest
             // convert int to byte array
             var bytes = BitConverter.GetBytes(i);
             _Write(bytes);
-            DataLeangh++;
             return true;
         }
 
@@ -54,7 +57,6 @@ namespace ChatCoreTest
             // convert int to byte array
             var bytes = BitConverter.GetBytes(f);
             _Write(bytes);
-            DataLeangh++;
             return true;
         }
 
@@ -79,8 +81,7 @@ namespace ChatCoreTest
             // converter little-endian to network's big-endian
             if (BitConverter.IsLittleEndian)
             {
-                byteData.CopyTo(m_NoReversePacketData, m_Pos);
-                Array.Reverse(byteData);
+                byteData.CopyTo(m_PacketDataPlusLeangh, m_Pos);
             }
 
             byteData.CopyTo(m_PacketData, m_Pos);
@@ -95,9 +96,9 @@ namespace ChatCoreTest
 
         private static void UnPacking(byte[] UnPackingData)
         {
-            int i = BitConverter.ToInt32(m_NoReversePacketData, 0);
-            float f = BitConverter.ToSingle(m_NoReversePacketData, 4);
-            string s = Encoding.Unicode.GetString(m_NoReversePacketData, 12, StringByteCount);
+            int i = BitConverter.ToInt32(UnPackingData, 1);
+            float f = BitConverter.ToSingle(UnPackingData, 5);
+            string s = Encoding.Unicode.GetString(UnPackingData, 13, StringByteCount);
             Console.WriteLine(i);
             Console.WriteLine(f);
             Console.WriteLine(s);
